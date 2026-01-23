@@ -2,27 +2,45 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { auth } from "./middleware";
 import { JWT_SECRET } from "@repo/common-backend/config";
-import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/types";
+import {
+  CreateRoomSchema,
+  CreateUserSchema,
+  SignInSchema,
+} from "@repo/common/types";
+import { prisma } from "@repo/db";
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 
-app.post("/signup", (req, res) => {
-  const data = CreateUserSchema.safeParse(req.body);
-  if (!data.success) {
-    res.status(400).json({ error: data.error});
+app.post("/signup", async (req, res) => {
+  const parsedData = CreateUserSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    res.status(400).json({ error: parsedData.error });
     return;
   }
 
-  res.send("signup route");
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email: parsedData.data.username,
+        password: parsedData.data.password,
+        name: parsedData.data.name,
+      },
+    });
+
+    res.status(201).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 app.post("/signin", (req, res) => {
   const data = SignInSchema.safeParse(req.body);
   if (!data.success) {
-    res.status(400).json({ error: data.error});
+    res.status(400).json({ error: data.error });
     return;
   }
   const userId = "sfudg";
@@ -39,7 +57,7 @@ app.post("/signin", (req, res) => {
 app.post("/room", auth, (req, res) => {
   const data = CreateRoomSchema.safeParse(req.body);
   if (!data.success) {
-    res.status(400).json({ error: data.error});
+    res.status(400).json({ error: data.error });
     return;
   }
   res.send("create room route");
