@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { auth } from "./middleware";
@@ -33,6 +34,7 @@ app.post("/signup", async (req, res) => {
 
     res.status(201).json({ user });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
