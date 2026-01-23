@@ -10,7 +10,6 @@ import {
 } from "@repo/common/types";
 import { prisma } from "@repo/db";
 
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -27,6 +26,7 @@ app.post("/signup", async (req, res) => {
     const user = await prisma.user.create({
       data: {
         email: parsedData.data.username,
+        // hash the password
         password: parsedData.data.password,
         name: parsedData.data.name,
       },
@@ -39,30 +39,68 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.post("/signin", (req, res) => {
-  const data = SignInSchema.safeParse(req.body);
-  if (!data.success) {
-    res.status(400).json({ error: data.error });
+app.post("/signin", async (req, res) => {
+  const parsedData = SignInSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    res.status(400).json({ error: parsedData.error });
     return;
   }
-  const userId = "sfudg";
-  const token = jwt.sign(
-    {
-      userId,
-    },
-    JWT_SECRET
-  );
 
-  res.json({ token });
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        email: parsedData.data.username,
+        password: parsedData.data.password, // compare hashed password
+      },
+    });
+
+    if (!user) {
+      res.status(401).json({ error: "Invalid credentials or user not found" });
+      return;
+    }
+
+    const userId = user.id;
+    const token = jwt.sign(
+      {
+        userId,
+      },
+      JWT_SECRET,
+    );
+
+    res.send({ token: token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+    return;
+  }
 });
 
-app.post("/room", auth, (req, res) => {
-  const data = CreateRoomSchema.safeParse(req.body);
-  if (!data.success) {
-    res.status(400).json({ error: data.error });
+app.post("/room", auth, async (req, res) => {
+  const parsedData = CreateRoomSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    res.status(400).json({ error: parsedData.error });
     return;
   }
-  res.send("create room route");
+  
+  const userId = req.userId;
+
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const room = await prisma.room.create({
+    data: {
+      slug:  parsedData.data.name,
+      adminId: userId
+    }
+  })
+
+  res.send({
+    room: room.id,
+    admin: room.adminId
+  })
+  
 });
 
 app.listen(PORT, () => {
