@@ -9,6 +9,7 @@ import {
   SignInSchema,
 } from "@repo/common/types";
 import { prisma } from "@repo/db";
+import { RoomScalarFieldEnum } from "../../../packages/db/generated/prisma/internal/prismaNamespace";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,11 +32,9 @@ app.post("/signup", async (req, res) => {
         name: parsedData.data.name,
       },
     });
-
     res.status(201).json({ user });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(411).json({ message: "User already exist" });
   }
 });
 
@@ -81,7 +80,7 @@ app.post("/room", auth, async (req, res) => {
     res.status(400).json({ error: parsedData.error });
     return;
   }
-  
+
   const userId = req.userId;
 
   if (!userId) {
@@ -89,18 +88,23 @@ app.post("/room", auth, async (req, res) => {
     return;
   }
 
-  const room = await prisma.room.create({
-    data: {
-      slug:  parsedData.data.name,
-      adminId: userId
-    }
-  })
+  try {
+    const room = await prisma.room.create({
+      data: {
+        slug: parsedData.data.name,
+        adminId: userId,
+      },
+    });
 
-  res.send({
-    room: room.id,
-    admin: room.adminId
-  })
-  
+    res.send({
+      room: room.id,
+      admin: room.adminId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "room already exists" });
+    return;
+  }
 });
 
 app.listen(PORT, () => {
