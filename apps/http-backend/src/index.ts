@@ -9,7 +9,6 @@ import {
   SignInSchema,
 } from "@repo/common/types";
 import { prisma } from "@repo/db";
-import { RoomScalarFieldEnum } from "../../../packages/db/generated/prisma/internal/prismaNamespace";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -105,6 +104,24 @@ app.post("/room", auth, async (req, res) => {
     res.status(500).json({ message: "room already exists" });
     return;
   }
+});
+
+app.get("/chats/:roomId", auth, async (req, res) => {
+  const roomId = Number(req.params.roomId);
+
+  const messages = await prisma.chat.findMany({
+    where: {
+      roomId: roomId,
+    },
+    orderBy: {
+      id: "desc",
+    },
+    take: 50,
+  });
+
+  res.send({
+    messages: messages,
+  });
 });
 
 app.listen(PORT, () => {
