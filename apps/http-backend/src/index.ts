@@ -124,6 +124,30 @@ app.get("/chats/:roomId", auth, async (req, res) => {
   });
 });
 
+app.get("/room/:slug", auth, async (req, res) => {
+  const slug = req.params.slug;
+
+  if (!slug) {
+    res.status(400).json({ error: "Slug parameter is required" });
+    return;
+  }
+
+  if (typeof slug !== "string") {
+    res.status(400).json({ error: "Slug must be a string" });
+    return;
+  }
+
+  const room = await prisma.room.findFirst({
+    where: {
+      slug: slug,
+    },
+  });
+
+  res.send({
+    room: room,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`listeing to port ${PORT}`);
 });
