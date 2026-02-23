@@ -172,7 +172,7 @@ export default function Home() {
                   End-to-End Encrypted
                 </h3>
                 <p className="text-gray-600">
-                  Your data is encrypted and private. We can't see what you
+                  Your data is encrypted and private. We cant see what you
                   create
                 </p>
               </div>
