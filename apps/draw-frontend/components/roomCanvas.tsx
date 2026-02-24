@@ -3,7 +3,6 @@ import { WS_BACKEND } from "@/config";
 import { useEffect, useState } from "react";
 import CanvasComponent from "./canvasComponent";
 import Loader from "./loader";
-import { log } from "console";
 
 export default function RoomCanvas({ roomId }: { roomId: string }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -25,11 +24,6 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
       console.error("WebSocket error:", error);
     };
 
-    return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
-      }
-    };
   }, [roomId]);
 
   if (!socket) {

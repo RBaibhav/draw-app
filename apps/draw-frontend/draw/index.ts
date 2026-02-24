@@ -40,7 +40,7 @@ export default async function initCanvas(
 
     if (message.type === "chat") {
       const parsedShape = JSON.parse(message.message);
-      existingShapes.push(parsedShape);
+      existingShapes.push(parsedShape.shape);
       clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
     }
   };
