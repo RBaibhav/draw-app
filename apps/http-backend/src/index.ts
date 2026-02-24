@@ -3,6 +3,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { auth } from "./middleware";
 import { JWT_SECRET } from "@repo/common-backend/config";
+import cors from "cors";
 import {
   CreateRoomSchema,
   CreateUserSchema,
@@ -14,6 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
+app.use(cors())
 
 app.post("/signup", async (req, res) => {
   const parsedData = CreateUserSchema.safeParse(req.body);
@@ -106,22 +108,28 @@ app.post("/room", auth, async (req, res) => {
   }
 });
 
-app.get("/chats/:roomId", auth, async (req, res) => {
-  const roomId = Number(req.params.roomId);
+app.get("/chats/:roomId", async (req, res) => {
+  try {
+    const roomId = Number(req.params.roomId);
 
-  const messages = await prisma.chat.findMany({
-    where: {
-      roomId: roomId,
-    },
-    orderBy: {
-      id: "desc",
-    },
-    take: 50,
-  });
+    const messages = await prisma.chat.findMany({
+      where: {
+        roomId: roomId,
+      },
+      orderBy: {
+        id: "desc",
+      },
+      take: 50,
+    });
 
-  res.send({
-    messages: messages,
-  });
+    res.send({
+      messages: messages,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+    return;
+  }
 });
 
 app.get("/room/:slug", auth, async (req, res) => {

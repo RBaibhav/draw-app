@@ -83,7 +83,10 @@ export default async function initCanvas(
     
     socket.send(JSON.stringify({
       type: "chat",
-      message: JSON.stringify(shape),
+      message: JSON.stringify({
+        shape
+      }),
+      roomId
     })
     )
   };
@@ -109,7 +112,7 @@ function clearCanvas(
   ctx.fillStyle = "rgba(0, 0, 0 )";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  existingShapes.forEach((shape) => {
+  existingShapes.map((shape) => {
     if (shape.type === "rect") {
       ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
       ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
@@ -123,7 +126,7 @@ async function getExistingShapes(roomId: string) {
   const messages = res.data.messages;
   const shapes = messages.map((x: { message: string }) => {
     const messageData = JSON.parse(x.message);
-    return messageData;
+    return messageData.shape;
   });
 
   return shapes;

@@ -19,7 +19,7 @@ export default function CanvasComponent({ roomId, socket }: { roomId: string, so
     return () => {
       cleanUp?.();
     };
-  }, [roomId]);
+  }, [roomId, socket]);
   
  
 
