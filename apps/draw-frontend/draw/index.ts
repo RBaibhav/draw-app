@@ -14,6 +14,11 @@ type Shape =
       centerX: number;
       centerY: number;
       radius: number;
+    } | {
+      type: "circle";
+      x: number;
+      y: number;
+      radius: number;
     };
 
 export default async function initCanvas(
@@ -55,7 +60,7 @@ export default async function initCanvas(
       const height = e.clientY - startY;
 
       clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
-
+      
       ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
       ctx.strokeRect(startX, startY, width, height);
     }
@@ -72,23 +77,24 @@ export default async function initCanvas(
 
     const width = e.clientX - startX;
     const height = e.clientY - startY;
-    const shape : Shape = {
+    const shape: Shape = {
       type: "rect",
       x: startX,
       y: startY,
       width,
       height,
-    }
+    };
     existingShapes.push(shape);
-    
-    socket.send(JSON.stringify({
-      type: "chat",
-      message: JSON.stringify({
-        shape
+
+    socket.send(
+      JSON.stringify({
+        type: "chat",
+        message: JSON.stringify({
+          shape,
+        }),
+        roomId,
       }),
-      roomId
-    })
-    )
+    );
   };
 
   canvas.addEventListener("pointerdown", handleDown);

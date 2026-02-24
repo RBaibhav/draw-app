@@ -1,11 +1,17 @@
 "use client";
 import initCanvas from "@/draw";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export default function CanvasComponent({ roomId, socket }: { roomId: string, socket: WebSocket }) {
+export default function CanvasComponent({
+  roomId,
+  socket,
+}: {
+  roomId: string;
+  socket: WebSocket;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isMouseDown = useRef(false);
- 
+
   useEffect(() => {
     if (!canvasRef.current) {
       return;
@@ -20,8 +26,6 @@ export default function CanvasComponent({ roomId, socket }: { roomId: string, so
       cleanUp?.();
     };
   }, [roomId, socket]);
-  
- 
 
   return (
     <div className="relative h-screen w-screen flex items-center justify-center bg-neutral-50">
