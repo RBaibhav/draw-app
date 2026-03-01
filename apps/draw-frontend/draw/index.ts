@@ -1,5 +1,5 @@
 import { drawShape } from "./shapes/drawShapes";
-import { Shape } from "./shapes/Types";
+import { Points, Shape } from "./shapes/Types";
 import { getShapeData } from "./shapeData";
 import { getExistingShapes } from "./http";
 
@@ -40,20 +40,35 @@ export default async function initCanvas(
   let startX = 0;
   let startY = 0;
 
-  const handleDown = (e: PointerEvent) => {
-    isMouseDown.current = true;
-    startX = e.clientX;
-    startY = e.clientY;
+  const strokes: Points[] = []; // only for pencil tool
+
+  const getCanvasCoordinates = (e: PointerEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
   };
 
+  const handleDown = (e: PointerEvent) => {
+    isMouseDown.current = true;
+    const coords = getCanvasCoordinates(e);
+    startX = coords.x;
+    startY = coords.y;
+    strokes.length = 0; // Clear previous strokes
+  };
   const handleMove = (e: PointerEvent) => {
     if (isMouseDown.current && shapeType) {
-      const x = e.clientX;
-      const y = e.clientY;
+      const coords = getCanvasCoordinates(e);
+      const x = coords.x;
+      const y = coords.y;
+
+      if (shapeType == "pencil") {
+        strokes.push({ x, y });
+      }
 
       clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
-
-      const shape = getShapeData(shapeType, startX, startY, x, y);
+      const shape = getShapeData(shapeType, startX, startY, x, y, strokes);
       drawShape(ctx, shape as Shape);
     }
   };
@@ -64,15 +79,16 @@ export default async function initCanvas(
     // Return early if no shape type is selected
     if (!shapeType) return;
 
+    const coords = getCanvasCoordinates(e);
     const shape = getShapeData(
       shapeType,
       startX,
       startY,
-      e.clientX,
-      e.clientY,
-    ) as Shape;
-
-    existingShapes.push(shape);
+      coords.x,
+      coords.y,
+      strokes,
+    );
+    existingShapes.push(shape as Shape);
 
     socket.send(
       JSON.stringify({

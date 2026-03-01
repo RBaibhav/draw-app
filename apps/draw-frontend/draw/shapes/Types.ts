@@ -21,4 +21,15 @@ export type Shape =
       x: number;
       y: number;
       radius: number;
+    }
+  | {
+      type: "pencil";
+      stroke: Points[];
+      thickness: number;
     };
+
+export interface Points{
+  x: number;
+  y: number;
+}
+

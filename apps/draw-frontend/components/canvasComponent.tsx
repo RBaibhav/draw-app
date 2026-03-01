@@ -3,7 +3,7 @@ import initCanvas from "@/draw";
 import { Shape } from "@/draw/shapes/Types";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./iconButton";
-import { Circle, MoveRight, RectangleHorizontal } from "lucide-react";
+import { Circle, MoveRight, PencilIcon, RectangleHorizontal } from "lucide-react";
 
 export default function CanvasComponent({
   roomId,
@@ -15,7 +15,6 @@ export default function CanvasComponent({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isMouseDown = useRef(false);
   const [shapeType, setShapeType] = useState<Shape["type"] | "">("");
-  
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -61,7 +60,11 @@ export default function CanvasComponent({
             onClick={() => setShapeType("line")}
             icon={<MoveRight />}
             activated={shapeType === "line"}
-            
+          />
+          <IconButton
+            onClick={() => setShapeType("pencil")}
+            icon={<PencilIcon/>}
+            activated={shapeType === "pencil"}
           />
         </div>
       </div>

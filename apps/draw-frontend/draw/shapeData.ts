@@ -1,9 +1,12 @@
+import { Points } from "./shapes/Types";
+
 export const getShapeData = (
   shapeType: string,
   startX: number,
   startY: number,
   x: number,
   y: number,
+  strokes?: Points[],
 ) => {
   const width = x - startX;
   const height = y - startY;
@@ -38,6 +41,14 @@ export const getShapeData = (
         x,
         y,
         radius: Math.sqrt(width * width + height * height) / 2,
+      };
+      break;
+    }
+    case "pencil": {
+      return {
+        type: "pencil",
+        stroke: strokes || [],
+        thickness: 1,
       };
       break;
     }
