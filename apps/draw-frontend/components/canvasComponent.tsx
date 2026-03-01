@@ -15,6 +15,7 @@ export default function CanvasComponent({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isMouseDown = useRef(false);
   const [shapeType, setShapeType] = useState<Shape["type"] | "">("");
+  
 
   useEffect(() => {
     if (!canvasRef.current) {
@@ -49,14 +50,18 @@ export default function CanvasComponent({
           <IconButton
             onClick={() => setShapeType("rect")}
             icon={<RectangleHorizontal />}
+            activated={shapeType === "rect"}
           />
           <IconButton
             onClick={() => setShapeType("circle")}
             icon={<Circle />}
+            activated={shapeType === "circle"}
           />
           <IconButton
             onClick={() => setShapeType("line")}
             icon={<MoveRight />}
+            activated={shapeType === "line"}
+            
           />
         </div>
       </div>

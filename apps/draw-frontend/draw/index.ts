@@ -1,8 +1,7 @@
-import { HTTP_BACKEND } from "@/config";
-import axios from "axios";
 import { drawShape } from "./shapes/drawShapes";
 import { Shape } from "./shapes/Types";
 import { getShapeData } from "./shapeData";
+import { getExistingShapes } from "./http";
 
 export default async function initCanvas(
   canvas: HTMLCanvasElement,
@@ -110,16 +109,4 @@ function clearCanvas(
   existingShapes.map((shape) => {
     drawShape(ctx, shape);
   });
-}
-
-async function getExistingShapes(roomId: string) {
-  const res = await axios.get(`${HTTP_BACKEND}/chats/${roomId}`);
-
-  const messages = res.data.messages;
-  const shapes = messages.map((x: { message: string }) => {
-    const messageData = JSON.parse(x.message);
-    return messageData.shape;
-  });
-
-  return shapes;
 }
