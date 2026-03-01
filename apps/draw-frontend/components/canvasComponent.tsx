@@ -42,27 +42,35 @@ export default function CanvasComponent({
         className="w-full h-full"
         style={{ touchAction: "none" }}
       ></canvas>
-      <div className="absolute top-0 mt-8 w-xl px-4 py-2 rounded-lg text-white bg-neutral-800 shadow-md shadow-neutral-600">
-        <div className="flex w-full justify-between items-center gap-4">
+      <div className="absolute top-0 mt-8 px-4 py-2 rounded-lg text-white">
+        <div className="flex justify-between items-center gap-2">
           <button
             onClick={() => setShapeType("rect")}
             id="rect"
-            className="hover:bg-neutral-700 active:bg-neutral-500 px-2 py-1 rounded-sm"
+            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
           >
             Rectangle
           </button>
           <button
             onClick={() => setShapeType("circle")}
             id="circle"
-            className=""
+            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
           >
             Circle
           </button>
-          <button onClick={() => setShapeType("line")} id="line" className="">
+          <button
+            onClick={() => setShapeType("line")}
+            id="line"
+            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
+          >
             Line
           </button>
-          <button className="">Ellipse</button>
-          <button className="">Polygon</button>
+          <button className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300">
+            Ellipse
+          </button>
+          <button className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300">
+            Polygon
+          </button>
         </div>
       </div>
     </div>
