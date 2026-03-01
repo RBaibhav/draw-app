@@ -1,35 +1,20 @@
 import { HTTP_BACKEND } from "@/config";
 import axios from "axios";
-
-type Shape =
-  | {
-      type: "rect";
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }
-  | {
-      type: "line";
-      centerX: number;
-      centerY: number;
-      radius: number;
-    } | {
-      type: "circle";
-      x: number;
-      y: number;
-      radius: number;
-    };
+import { drawShape } from "./shapes/drawShapes";
+import { Shape } from "./shapes/Types";
 
 export default async function initCanvas(
   canvas: HTMLCanvasElement,
   isMouseDown: { current: boolean },
   roomId: string,
   socket: WebSocket,
+  shapeType: Shape["type"] | "",
 ) {
   const ctx = canvas.getContext("2d");
 
   const existingShapes: Shape[] = await getExistingShapes(roomId);
+
+  console.log("shape : ", shapeType);
 
   if (!ctx) return;
   // Set canvas size to match display size
@@ -54,17 +39,6 @@ export default async function initCanvas(
 
   let startX = 0;
   let startY = 0;
-  const handleMove = (e: PointerEvent) => {
-    if (isMouseDown.current) {
-      const width = e.clientX - startX;
-      const height = e.clientY - startY;
-
-      clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
-      
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.strokeRect(startX, startY, width, height);
-    }
-  };
 
   const handleDown = (e: PointerEvent) => {
     isMouseDown.current = true;
@@ -72,11 +46,50 @@ export default async function initCanvas(
     startY = e.clientY;
   };
 
+  const handleMove = (e: PointerEvent) => {
+    if (isMouseDown.current) {
+      const width = e.clientX - startX;
+      const height = e.clientY - startY;
+
+      clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
+
+      //      const shape: Shape = getShapeData(shapeType, e, startX, startY);
+      switch (shapeType) {
+        case "line": {
+          drawShape(ctx, {
+            type: "line",
+            startX,
+            startY,
+            thickness: 1,
+            x: e.clientX,
+            y: e.clientY,
+          });
+          break;
+        }
+        case "rect": {
+          console.log("hehe");
+
+          drawShape(ctx, {
+            type: "rect",
+            startX,
+            startY,
+            width: width,
+            height: height,
+          });
+        }
+      }
+
+      //ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      //ctx.strokeRect(startX, startY, width, height);
+    }
+  };
+
   const handleUp = (e: PointerEvent) => {
     isMouseDown.current = false;
 
     const width = e.clientX - startX;
     const height = e.clientY - startY;
+    /*
     const shape: Shape = {
       type: "rect",
       x: startX,
@@ -84,6 +97,37 @@ export default async function initCanvas(
       width,
       height,
     };
+   */
+
+    let shape: Shape;
+    switch (shapeType) {
+      case "line": {
+        shape = {
+          type: "line",
+          startX,
+          startY,
+          thickness: 1,
+          x: e.clientX,
+          y: e.clientY,
+        };
+        break;
+      }
+      case "rect": {
+        console.log("hehe");
+
+        shape = {
+          type: "rect",
+          startX,
+          startY,
+          width: width,
+          height: height,
+        };
+        break;
+      }
+      default:
+        throw new Error("Invalid shape type");
+    }
+    
     existingShapes.push(shape);
 
     socket.send(
@@ -121,7 +165,10 @@ function clearCanvas(
   existingShapes.map((shape) => {
     if (shape.type === "rect") {
       ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+      ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
+    }
+    if (shape.type === "line") {
+      drawShape(ctx, shape);
     }
   });
 }

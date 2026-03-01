@@ -3,6 +3,7 @@ import { WS_BACKEND } from "@/config";
 import { useEffect, useState } from "react";
 import CanvasComponent from "./canvasComponent";
 import Loader from "./loader";
+import { Shape } from "@/draw";
 
 export default function RoomCanvas({ roomId }: { roomId: string }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
