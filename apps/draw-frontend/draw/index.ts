@@ -2,6 +2,7 @@ import { HTTP_BACKEND } from "@/config";
 import axios from "axios";
 import { drawShape } from "./shapes/drawShapes";
 import { Shape } from "./shapes/Types";
+import { getShapeData } from "./shapeData";
 
 export default async function initCanvas(
   canvas: HTMLCanvasElement,
@@ -48,36 +49,13 @@ export default async function initCanvas(
 
   const handleMove = (e: PointerEvent) => {
     if (isMouseDown.current && shapeType) {
-      const width = e.clientX - startX;
-      const height = e.clientY - startY;
+      const x = e.clientX;
+      const y = e.clientY;
 
       clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
 
-      //      const shape: Shape = getShapeData(shapeType, e, startX, startY);
-      switch (shapeType) {
-        case "line": {
-          drawShape(ctx, {
-            type: "line",
-            startX,
-            startY,
-            thickness: 1,
-            x: e.clientX,
-            y: e.clientY,
-          });
-          break;
-        }
-        case "rect": {
-          console.log("hehe");
-
-          drawShape(ctx, {
-            type: "rect",
-            startX,
-            startY,
-            width: width,
-            height: height,
-          });
-        }
-      }
+      const shape = getShapeData(shapeType, startX, startY, x, y);
+      drawShape(ctx, shape as Shape);
 
       //ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
       //ctx.strokeRect(startX, startY, width, height);
@@ -90,47 +68,14 @@ export default async function initCanvas(
     // Return early if no shape type is selected
     if (!shapeType) return;
 
-    const width = e.clientX - startX;
-    const height = e.clientY - startY;
-    /*
-    const shape: Shape = {
-      type: "rect",
-      x: startX,
-      y: startY,
-      width,
-      height,
-    };
-   */
+    const shape = getShapeData(
+      shapeType,
+      startX,
+      startY,
+      e.clientX,
+      e.clientY,
+    ) as Shape;
 
-    let shape: Shape;
-    switch (shapeType) {
-      case "line": {
-        shape = {
-          type: "line",
-          startX,
-          startY,
-          thickness: 1,
-          x: e.clientX,
-          y: e.clientY,
-        };
-        break;
-      }
-      case "rect": {
-        console.log("hehe");
-
-        shape = {
-          type: "rect",
-          startX,
-          startY,
-          width: width,
-          height: height,
-        };
-        break;
-      }
-      default:
-        throw new Error("Invalid shape type");
-    }
-    
     existingShapes.push(shape);
 
     socket.send(
@@ -166,13 +111,7 @@ function clearCanvas(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   existingShapes.map((shape) => {
-    if (shape.type === "rect") {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
-    }
-    if (shape.type === "line") {
-      drawShape(ctx, shape);
-    }
+    drawShape(ctx, shape); 
   });
 }
 

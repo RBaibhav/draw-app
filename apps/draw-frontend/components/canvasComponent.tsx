@@ -65,12 +65,6 @@ export default function CanvasComponent({
           >
             Line
           </button>
-          <button className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300">
-            Ellipse
-          </button>
-          <button className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300">
-            Polygon
-          </button>
         </div>
       </div>
     </div>

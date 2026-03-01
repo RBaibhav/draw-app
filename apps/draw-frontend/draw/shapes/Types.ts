@@ -16,6 +16,8 @@ export type Shape =
     }
   | {
       type: "circle";
+      startX: number;
+      startY: number;
       x: number;
       y: number;
       radius: number;
