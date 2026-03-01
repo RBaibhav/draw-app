@@ -47,7 +47,7 @@ export default async function initCanvas(
   };
 
   const handleMove = (e: PointerEvent) => {
-    if (isMouseDown.current) {
+    if (isMouseDown.current && shapeType) {
       const width = e.clientX - startX;
       const height = e.clientY - startY;
 
@@ -86,6 +86,9 @@ export default async function initCanvas(
 
   const handleUp = (e: PointerEvent) => {
     isMouseDown.current = false;
+
+    // Return early if no shape type is selected
+    if (!shapeType) return;
 
     const width = e.clientX - startX;
     const height = e.clientY - startY;
