@@ -2,6 +2,8 @@
 import initCanvas from "@/draw";
 import { Shape } from "@/draw/shapes/Types";
 import { useEffect, useRef, useState } from "react";
+import { IconButton } from "./iconButton";
+import { Circle, MoveRight, RectangleHorizontal } from "lucide-react";
 
 export default function CanvasComponent({
   roomId,
@@ -40,31 +42,22 @@ export default function CanvasComponent({
       <canvas
         ref={canvasRef}
         className="w-full h-full"
-        style={{ touchAction: "none" }}
+        style={{ touchAction: "none" }} // Disable default browser touch actions
       ></canvas>
       <div className="absolute top-0 mt-8 px-4 py-2 rounded-lg text-white">
         <div className="flex justify-between items-center gap-2">
-          <button
+          <IconButton
             onClick={() => setShapeType("rect")}
-            id="rect"
-            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
-          >
-            Rectangle
-          </button>
-          <button
+            icon={<RectangleHorizontal />}
+          />
+          <IconButton
             onClick={() => setShapeType("circle")}
-            id="circle"
-            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
-          >
-            Circle
-          </button>
-          <button
+            icon={<Circle />}
+          />
+          <IconButton
             onClick={() => setShapeType("line")}
-            id="line"
-            className="cursor-pointer bg-neutral-900 px-4 py-2 rounded-lg shadow-xs shadow-neutral-500 hover:bg-neutral-800 active:bg-neutral-700 active:text-neutral-300"
-          >
-            Line
-          </button>
+            icon={<MoveRight />}
+          />
         </div>
       </div>
     </div>

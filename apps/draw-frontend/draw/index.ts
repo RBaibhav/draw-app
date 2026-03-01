@@ -56,9 +56,6 @@ export default async function initCanvas(
 
       const shape = getShapeData(shapeType, startX, startY, x, y);
       drawShape(ctx, shape as Shape);
-
-      //ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-      //ctx.strokeRect(startX, startY, width, height);
     }
   };
 
@@ -111,7 +108,7 @@ function clearCanvas(
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   existingShapes.map((shape) => {
-    drawShape(ctx, shape); 
+    drawShape(ctx, shape);
   });
 }
 
