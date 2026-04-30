@@ -19,7 +19,7 @@ export default function Home() {
             <div className="flex items-center space-x-2">
               <Pencil className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
               <span className="text-2xl font-bold text-gray-900">
-                Excalidraw
+                Draw App
               </span>
             </div>
             <div className="hidden md:flex items-center space-x-8">

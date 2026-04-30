@@ -13,15 +13,28 @@ export default function AuthPage({ isSignIn }: { isSignIn: boolean }) {
 
   const handleSignUp = async () => {
     try {
-      const res = await axios.post(`${HTTP_BACKEND}/signup`, {
+      await axios.post(`${HTTP_BACKEND}/signup`, {
         name,
         username: userName,
         password,
       });
-    } catch (err) {
       router.push("/signin");
-      console.log(err);
-      
+    } catch (err) {
+      console.error("Signup error:", err);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      const res = await axios.post(`${HTTP_BACKEND}/signin`, {
+        username: userName,
+        password,
+      });
+      const token = res.data.token;
+      localStorage.setItem("token", token);
+      router.push("/");
+    } catch (err) {
+      console.error("Signin error:", err);
     }
   };
 
@@ -53,7 +66,7 @@ export default function AuthPage({ isSignIn }: { isSignIn: boolean }) {
               onChange={(e) => setPassword(e.target.value)}
             />
             <button
-              onClick={handleSignUp}
+              onClick={isSignIn ? handleSignIn : handleSignUp}
               className="bg-neutral-100 px-6 py-3 text-neutral-800 shadow-md shadow-neutral-600 font-semibold tracking-wide rounded-xl hover:bg-neutral-400 hover:text-neutral-100 cursor-pointer"
             >
               {" "}
