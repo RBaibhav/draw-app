@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%" style="background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Background Grid -->
+    <pattern id="arch-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.75" opacity="0.6"/>
+    </pattern>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="arch-shadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arch-arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arch-arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#8b5cf6"/>
+    </marker>
+    <marker id="arch-arrow-cyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#06b6d4"/>
+    </marker>
+    <marker id="arch-arrow-emerald" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/>
+    </marker>
+
+    <!-- Gradients -->
+    <linearGradient id="g-client" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="g-http" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="g-ws" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e7490"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="g-db" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+    <linearGradient id="g-repo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#arch-grid)"/>
+
+  <!-- Title -->
+  <g transform="translate(60, 30)">
+    <rect x="0" y="0" width="1080" height="54" rx="12" fill="#131d31" stroke="#22324f" stroke-width="1.5"/>
+    <text x="24" y="34" fill="#f8fafc" font-size="19" font-weight="700">System Architecture &amp; Data Pipeline</text>
+    <rect x="740" y="13" width="150" height="28" rx="6" fill="#3b82f6" fill-opacity="0.2" stroke="#3b82f6" stroke-width="1"/>
+    <text x="752" y="32" fill="#60a5fa" font-size="12" font-weight="600">Turborepo Monorepo</text>
+    <rect x="904" y="13" width="155" height="28" rx="6" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1"/>
+    <text x="918" y="32" fill="#34d399" font-size="12" font-weight="600">Dual Backend Design</text>
+  </g>
+
+  <!-- Flow Lines -->
+  <!-- Client to HTTP Backend -->
+  <path d="M 450 240 C 450 280, 330 280, 330 330" fill="none" stroke="#8b5cf6" stroke-width="2.5" marker-end="url(#arch-arrow-purple)"/>
+  <g transform="translate(325, 275)">
+    <rect x="0" y="0" width="115" height="24" rx="6" fill="#1e1b4b" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="8" y="16" fill="#c4b5fd" font-size="10" font-weight="700">REST API (:3002)</text>
+  </g>
+
+  <!-- Client to WS Backend -->
+  <path d="M 750 240 C 750 280, 870 280, 870 330" fill="none" stroke="#06b6d4" stroke-width="2.5" marker-end="url(#arch-arrow-cyan)"/>
+  <g transform="translate(760, 275)">
+    <rect x="0" y="0" width="115" height="24" rx="6" fill="#083344" stroke="#06b6d4" stroke-width="1"/>
+    <text x="9" y="16" fill="#67e8f9" font-size="10" font-weight="700">WebSocket (:8080)</text>
+  </g>
+
+  <!-- HTTP Backend to DB -->
+  <path d="M 330 460 C 330 500, 520 500, 520 530" fill="none" stroke="#10b981" stroke-width="2.5" marker-end="url(#arch-arrow-emerald)"/>
+
+  <!-- WS Backend to DB -->
+  <path d="M 870 460 C 870 500, 680 500, 680 530" fill="none" stroke="#10b981" stroke-width="2.5" marker-end="url(#arch-arrow-emerald)"/>
+
+
+  <!-- ==================== CARD 1: CLIENT FRONTEND ==================== -->
+  <g transform="translate(360, 110)" filter="url(#arch-shadow)">
+    <rect width="480" height="130" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <rect width="480" height="42" rx="14" fill="url(#g-client)"/>
+    <rect y="30" width="480" height="12" fill="url(#g-client)"/>
+    <text x="20" y="27" fill="#ffffff" font-size="16" font-weight="700">🖥️ apps/draw-frontend (Next.js 16 + React 19)</text>
+    <text x="400" y="27" fill="#bfdbfe" font-size="12" font-weight="600">Port 3000</text>
+    
+    <text x="20" y="65" fill="#f8fafc" font-size="13" font-weight="600">• Native HTML5 Canvas 2D Engine (Bypasses Virtual DOM for 60-120fps)</text>
+    <text x="20" y="88" fill="#cbd5e1" font-size="12">• Optimistic local drawing preview with immediate pointer responsiveness</text>
+    <text x="20" y="110" fill="#94a3b8" font-size="12">• Room Hub, live sharing links, shape toolbar &amp; real-time canvas sync</text>
+  </g>
+
+  <!-- ==================== CARD 2: HTTP REST BACKEND ==================== -->
+  <g transform="translate(100, 330)" filter="url(#arch-shadow)">
+    <rect width="460" height="130" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <rect width="460" height="42" rx="14" fill="url(#g-http)"/>
+    <rect y="30" width="460" height="12" fill="url(#g-http)"/>
+    <text x="20" y="27" fill="#ffffff" font-size="15" font-weight="700">⚡ apps/http-backend (Express.js REST)</text>
+    <text x="385" y="27" fill="#e9d5ff" font-size="12" font-weight="600">Port 3002</text>
+
+    <text x="20" y="65" fill="#f8fafc" font-size="13" font-weight="600">• Stateless Authentication: JWT generation, signup/signin validation</text>
+    <text x="20" y="88" fill="#cbd5e1" font-size="12">• Room CRUD &amp; Memberships: create, join by slug, list, delete room</text>
+    <text x="20" y="110" fill="#94a3b8" font-size="12">• Initial Canvas Hydration: GET /shapes/:roomId &amp; DELETE clear</text>
+  </g>
+
+  <!-- ==================== CARD 3: WEBSOCKET BACKEND ==================== -->
+  <g transform="translate(640, 330)" filter="url(#arch-shadow)">
+    <rect width="460" height="130" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <rect width="460" height="42" rx="14" fill="url(#g-ws)"/>
+    <rect y="30" width="460" height="12" fill="url(#g-ws)"/>
+    <text x="20" y="27" fill="#ffffff" font-size="15" font-weight="700">🔄 apps/ws-backend (Node.js ws Server)</text>
+    <text x="385" y="27" fill="#cffafe" font-size="12" font-weight="600">Port 8080</text>
+
+    <text x="20" y="65" fill="#f8fafc" font-size="13" font-weight="600">• Persistent TCP Duplex Sockets with query-token JWT authorization</text>
+    <text x="20" y="88" fill="#cbd5e1" font-size="12">• In-Memory Room Registry: user presence tracking &amp; broadcastToRoom</text>
+    <text x="20" y="110" fill="#94a3b8" font-size="12">• Real-time events: draw_shape, clear_canvas, user_joined, room_deleted</text>
+  </g>
+
+  <!-- ==================== CARD 4: DATABASE ==================== -->
+  <g transform="translate(370, 530)" filter="url(#arch-shadow)">
+    <rect width="460" height="120" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+    <rect width="460" height="42" rx="14" fill="url(#g-db)"/>
+    <rect y="30" width="460" height="12" fill="url(#g-db)"/>
+    <text x="20" y="27" fill="#ffffff" font-size="15" font-weight="700">🗄️ PostgreSQL Database (Prisma ORM)</text>
+    <text x="375" y="27" fill="#d1fae5" font-size="12" font-weight="600">Docker :5432</text>
+
+    <text x="20" y="65" fill="#f8fafc" font-size="13" font-weight="600">• Tables: User, Room, RoomMember, Shape, Chat</text>
+    <text x="20" y="88" fill="#cbd5e1" font-size="12">• Polymorphic shapeData storage for flexible vector primitives</text>
+    <text x="20" y="106" fill="#94a3b8" font-size="11">• Referential integrity enforced with onDelete: Cascade</text>
+  </g>
+</svg>
