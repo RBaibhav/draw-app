@@ -41,7 +41,8 @@ ws-backend/src/
     ├── joinRoom.ts       # join_room — DB upsert, ACK, presence broadcast
     ├── leaveRoom.ts      # leave_room — presence broadcast
     ├── drawShape.ts      # draw_shape — DB persist, broadcast to room
-    └── clearCanvas.ts    # clear_canvas — DB delete, broadcast to room
+    ├── clearCanvas.ts    # clear_canvas — DB delete, broadcast to room
+    └── deleteRoom.ts     # delete_room — broadcast room_deleted to all room members
 ```
 
 ---
@@ -75,6 +76,7 @@ All messages are JSON. The client must include a `roomId` field for room-scoped 
 | `leave_room` | `roomId` | Leave a room |
 | `draw_shape` | `roomId`, `shape` | Persist and broadcast a shape |
 | `clear_canvas` | `roomId` | Delete all shapes for the room and broadcast |
+| `delete_room` | `roomId` | Notify room participants of deletion |
 
 ### Server → Client
 
@@ -85,6 +87,7 @@ All messages are JSON. The client must include a `roomId` field for room-scoped 
 | `user_left` | `userId`, `roomId` | Broadcast to other room members |
 | `draw_shape` | `roomId`, `userId`, `shape`, `shapeId` | Broadcast to all room members |
 | `clear_canvas` | `roomId`, `userId` | Broadcast to all room members |
+| `room_deleted` | `roomId`, `deletedBy` | Broadcast to all room members when room is deleted |
 
 ---
 

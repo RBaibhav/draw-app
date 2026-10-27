@@ -110,7 +110,7 @@ export default async function initCanvas(
     const { x, y } = getCoords(e);
     if (isFreehand()) liveStrokes.push({ x, y });
 
-    clearAndRedraw(canvas, ctx, shapes);
+    clearAndRedraw(canvas, ctx!, shapes);
 
     const preview = getShapeData(
       shapeTypeRef.current,
@@ -120,7 +120,7 @@ export default async function initCanvas(
       y,
       isFreehand() ? liveStrokes : undefined,
     );
-    if (preview) drawShape(ctx, preview);
+    if (preview) drawShape(ctx!, preview);
   }
 
   function onPointerUp(e: PointerEvent) {
@@ -140,7 +140,7 @@ export default async function initCanvas(
     if (!shape) return;
 
     shapes.push(shape);
-    clearAndRedraw(canvas, ctx, shapes);
+    clearAndRedraw(canvas, ctx!, shapes);
 
     socket.send(JSON.stringify({ type: "draw_shape", roomId, shape }));
   }

@@ -130,6 +130,30 @@ Get room details by numeric ID, including member list.
 
 ---
 
+#### `DELETE /room/:identifier` 🔒
+Delete a room and all its associated shapes and memberships. Only permitted for the room admin. Identifier can be the room slug or numeric ID.
+
+**Responses**
+- `200` — `{ message: "Room deleted successfully", roomId, slug }`
+- `403` — Unauthorized (user is not room admin)
+- `404` — Room not found
+
+---
+
+#### `POST /room/leave` 🔒
+Leave a room and remove the current user's membership.
+
+**Body**
+```json
+{ "roomId": 123 } // or { "slug": "room-slug" }
+```
+
+**Responses**
+- `200` — `{ message: "Left room successfully", roomId, slug }`
+- `404` — Room not found
+
+---
+
 ### Shapes
 
 #### `GET /shapes/:roomId`

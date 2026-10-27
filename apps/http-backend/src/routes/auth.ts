@@ -4,7 +4,7 @@ import { CreateUserSchema, SignInSchema } from "@repo/common/types";
 import { JWT_SECRET } from "@repo/common-backend/config";
 import { prisma } from "@repo/db";
 
-export const authRouter = Router();
+export const authRouter: Router = Router();
 
 authRouter.post("/signup", async (req, res) => {
   const parsed = CreateUserSchema.safeParse(req.body);

@@ -18,6 +18,7 @@ export default function RoomHub() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [token, setToken] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [myRooms, setMyRooms] = useState<RoomItem[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
 
@@ -25,9 +26,23 @@ export default function RoomHub() {
     const savedToken = localStorage.getItem("token");
     setToken(savedToken);
     if (savedToken) {
+      try {
+        const payload = JSON.parse(atob(savedToken.split(".")[1]));
+        setCurrentUserId(payload.userId || null);
+      } catch {
+        // ignore malformed token payload
+      }
       fetchMyRooms(savedToken);
     }
   }, []);
+
+  const handleDeleteRoom = (roomId: number) => {
+    setMyRooms((prev) => prev.filter((r) => r.id !== roomId));
+  };
+
+  const handleLeaveRoom = (roomId: number) => {
+    setMyRooms((prev) => prev.filter((r) => r.id !== roomId));
+  };
 
   const fetchMyRooms = async (authToken: string) => {
     setLoadingRooms(true);
@@ -224,6 +239,9 @@ export default function RoomHub() {
             rooms={myRooms}
             loadingRooms={loadingRooms}
             onRefresh={() => fetchMyRooms(token)}
+            currentUserId={currentUserId}
+            onDeleteRoom={handleDeleteRoom}
+            onLeaveRoom={handleLeaveRoom}
           />
         )}
 

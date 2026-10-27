@@ -4,6 +4,7 @@ import { handleJoinRoom } from "./joinRoom";
 import { handleLeaveRoom } from "./leaveRoom";
 import { handleDrawShape } from "./drawShape";
 import { handleClearCanvas } from "./clearCanvas";
+import { handleDeleteRoom } from "./deleteRoom";
 
 /** Parses an incoming WebSocket frame and routes it to the correct handler. */
 export async function dispatch(
@@ -29,6 +30,10 @@ export async function dispatch(
 
     case "clear_canvas":
       if (!isNaN(roomId)) await handleClearCanvas(user, roomId);
+      break;
+
+    case "delete_room":
+      if (!isNaN(roomId)) await handleDeleteRoom(user, roomId);
       break;
 
     default:

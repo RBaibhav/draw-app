@@ -7,12 +7,18 @@ interface RoomListProps {
   rooms: RoomItem[];
   loadingRooms: boolean;
   onRefresh: () => void;
+  currentUserId?: string | null;
+  onDeleteRoom?: (roomId: number) => void;
+  onLeaveRoom?: (roomId: number) => void;
 }
 
 export default function RoomList({
   rooms,
   loadingRooms,
   onRefresh,
+  currentUserId,
+  onDeleteRoom,
+  onLeaveRoom,
 }: RoomListProps) {
   return (
     <div className="mt-12 pt-8 border-t border-gray-100">
@@ -45,7 +51,13 @@ export default function RoomList({
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {rooms.map((room) => (
-            <RoomCard key={room.id} room={room} />
+            <RoomCard
+              key={room.id}
+              room={room}
+              currentUserId={currentUserId}
+              onDelete={onDeleteRoom}
+              onLeave={onLeaveRoom}
+            />
           ))}
         </div>
       )}

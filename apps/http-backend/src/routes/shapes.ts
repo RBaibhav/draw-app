@@ -2,7 +2,7 @@ import { Router } from "express";
 import { auth } from "../middleware";
 import { prisma } from "@repo/db";
 
-export const shapesRouter = Router();
+export const shapesRouter: Router = Router();
 
 // Get all shapes for a room (ordered chronologically)
 shapesRouter.get("/:roomId", async (req, res) => {

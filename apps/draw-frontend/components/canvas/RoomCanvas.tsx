@@ -11,6 +11,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [resolvedRoomId, setResolvedRoomId] = useState<number | null>(null);
   const [roomSlug, setRoomSlug] = useState<string>(roomId);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -38,6 +39,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
 
         let actualId: number;
         let actualSlug: string;
+        let actualAdminId: string = "";
 
         try {
           const joinRes = await axios.post(
@@ -47,6 +49,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
           );
           actualId = joinRes.data.room.id;
           actualSlug = joinRes.data.room.slug;
+          actualAdminId = joinRes.data.room.adminId || joinRes.data.room.admin?.id || "";
         } catch {
           // If join failed, try fetching room info directly
           const fetchUrl = isNumeric
@@ -57,11 +60,22 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
           });
           actualId = res.data.room.id;
           actualSlug = res.data.room.slug;
+          actualAdminId = res.data.room.adminId || res.data.room.admin?.id || "";
         }
 
         if (!isMounted) return;
         setResolvedRoomId(actualId);
         setRoomSlug(actualSlug);
+
+        // Check if current user is the room admin
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          if (payload.userId && actualAdminId && payload.userId === actualAdminId) {
+            setIsAdmin(true);
+          }
+        } catch {
+          // ignore malformed token payload
+        }
 
         // Connect to WebSocket with token
         const ws = new WebSocket(`${WS_BACKEND}?token=${token}`);
@@ -168,6 +182,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
       roomId={String(resolvedRoomId)}
       roomSlug={roomSlug}
       socket={socket}
+      isAdmin={isAdmin}
     />
   );
 }

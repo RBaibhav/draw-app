@@ -1,10 +1,11 @@
 "use client";
 import initCanvas from "@/draw";
-import { clearRoomShapes } from "@/draw/http";
+import { clearRoomShapes, deleteRoom } from "@/draw/http";
 import { Shape } from "@/draw/shapes/Types";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "./IconButton";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Check,
@@ -22,17 +23,41 @@ export default function CanvasComponent({
   roomId,
   roomSlug,
   socket,
+  isAdmin = false,
 }: {
   roomId: string;
   roomSlug?: string;
   socket: WebSocket;
+  isAdmin?: boolean;
 }) {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isMouseDown = useRef(false);
   const [shapeType, setShapeType] = useState<Shape["type"] | "">("pencil");
   const shapeTypeRef = useRef<Shape["type"] | "">("pencil");
   const [copied, setCopied] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Listen for real-time room deletion
+  useEffect(() => {
+    const handleWsMessage = (event: MessageEvent) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "room_deleted") {
+          alert("This room has been deleted by the admin.");
+          router.push("/rooms");
+        }
+      } catch {
+        // ignore non-json messages
+      }
+    };
+
+    socket.addEventListener("message", handleWsMessage);
+    return () => {
+      socket.removeEventListener("message", handleWsMessage);
+    };
+  }, [socket, router]);
 
   // Keep the ref in sync with state so the canvas closure always sees the latest tool
   shapeTypeRef.current = shapeType;
@@ -99,6 +124,45 @@ export default function CanvasComponent({
     }
   };
 
+  const handleDeleteRoom = async () => {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete room "${roomSlug || roomId}"?\n\nAll whiteboard drawings will be permanently lost and all participants disconnected.`,
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // Broadcast delete_room to other connected clients via WebSocket
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "delete_room",
+            roomId: Number(roomId),
+          }),
+        );
+      }
+
+      // Call HTTP backend to delete the room from database
+      const res = await deleteRoom(roomId, token);
+      if (res.success) {
+        router.push("/rooms");
+      } else {
+        alert(res.message || "Failed to delete room");
+      }
+    } catch (err) {
+      console.error("Error deleting room:", err);
+      alert("Failed to delete room");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const tools: { type: Shape["type"] | ""; icon: React.ReactNode; title: string }[] = [
     { type: "pencil", icon: <PencilIcon size={18} />, title: "Pencil (Freehand)" },
     { type: "rect", icon: <RectangleHorizontal size={18} />, title: "Rectangle" },
@@ -136,11 +200,11 @@ export default function CanvasComponent({
           </div>
         </div>
 
-        {/* Right: Actions (Share, Clear) */}
+        {/* Right: Actions (Share, Clear, Delete) */}
         <div className="pointer-events-auto flex items-center gap-2 bg-neutral-900/90 backdrop-blur-md border border-neutral-800 rounded-2xl px-3 py-2 shadow-xl">
           <button
             onClick={handleCopyLink}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
               copied
                 ? "bg-emerald-600 text-white"
                 : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
@@ -163,12 +227,24 @@ export default function CanvasComponent({
           <button
             onClick={handleClearCanvas}
             disabled={isClearing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition disabled:opacity-50"
-            title="Clear entire whiteboard"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition disabled:opacity-50 cursor-pointer"
+            title="Clear whiteboard drawings"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Clear</span>
+            <span className="hidden sm:inline">Clear Canvas</span>
           </button>
+
+          {isAdmin && (
+            <button
+              onClick={handleDeleteRoom}
+              disabled={isDeleting}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-red-400 hover:text-white hover:bg-red-600/80 border border-red-500/30 transition disabled:opacity-50 cursor-pointer"
+              title="Delete entire room permanently (Admin only)"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Delete Room</span>
+            </button>
+          )}
         </div>
       </div>
 

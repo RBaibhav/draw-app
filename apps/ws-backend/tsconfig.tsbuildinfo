@@ -1,1 +1,1 @@
-{"root":["./src/index.ts"],"version":"5.9.2"}
+{"root":["./src/auth.ts","./src/index.ts","./src/registry.ts","./src/handlers/clearCanvas.ts","./src/handlers/deleteRoom.ts","./src/handlers/dispatch.ts","./src/handlers/drawShape.ts","./src/handlers/joinRoom.ts","./src/handlers/leaveRoom.ts"],"version":"5.9.2"}
