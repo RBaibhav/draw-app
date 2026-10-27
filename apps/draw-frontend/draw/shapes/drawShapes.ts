@@ -2,6 +2,7 @@ import { drawCircle } from "./circle";
 import { drawLine } from "./line";
 import { drawPencil } from "./pencil";
 import { drawRect } from "./rect";
+import { drawEraser } from "./eraser";
 import { Shape } from "./Types";
 
 export function drawShape(ctx: CanvasRenderingContext2D, shape: Shape) {
@@ -18,6 +19,9 @@ export function drawShape(ctx: CanvasRenderingContext2D, shape: Shape) {
       break;
     case "pencil":
       drawPencil(ctx, shape);
+      break;
+    case "eraser":
+      drawEraser(ctx, shape);
       break;
   }
 }

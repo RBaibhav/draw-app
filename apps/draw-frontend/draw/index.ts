@@ -14,13 +14,14 @@ export default async function initCanvas(
 
   const existingShapes: Shape[] = await getExistingShapes(roomId);
 
-  console.log("shape : ", shapeType);
-
   if (!ctx) return;
+
   // Set canvas size to match display size
   const resizeCanvas = () => {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
+    clearCanvas(canvas, ctx, existingShapes);
   };
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
@@ -30,17 +31,24 @@ export default async function initCanvas(
 
     if (message.type === "chat") {
       const parsedShape = JSON.parse(message.message);
-      existingShapes.push(parsedShape.shape);
-      clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
+      const shape = parsedShape.shape as Shape;
+
+      if (shape.type === "eraser") {
+        // For eraser shapes from WS, add to existingShapes so they persist
+        existingShapes.push(shape);
+      } else {
+        existingShapes.push(shape);
+      }
+      clearCanvas(canvas, ctx, existingShapes);
     }
   };
 
-  clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
+  clearCanvas(canvas, ctx, existingShapes);
 
   let startX = 0;
   let startY = 0;
 
-  const strokes: Points[] = []; // only for pencil tool
+  const strokes: Points[] = []; // for pencil and eraser tools
 
   const getCanvasCoordinates = (e: PointerEvent) => {
     const rect = canvas.getBoundingClientRect();
@@ -56,18 +64,22 @@ export default async function initCanvas(
     startX = coords.x;
     startY = coords.y;
     strokes.length = 0; // Clear previous strokes
+    if (shapeType === "pencil" || shapeType === "eraser") {
+      strokes.push({ x: coords.x, y: coords.y });
+    }
   };
+
   const handleMove = (e: PointerEvent) => {
     if (isMouseDown.current && shapeType) {
       const coords = getCanvasCoordinates(e);
       const x = coords.x;
       const y = coords.y;
 
-      if (shapeType == "pencil") {
+      if (shapeType === "pencil" || shapeType === "eraser") {
         strokes.push({ x, y });
       }
 
-      clearCanvas(canvas, ctx, existingShapes); // Clear canvas and redraw existing shapes
+      clearCanvas(canvas, ctx, existingShapes);
       const shape = getShapeData(shapeType, startX, startY, x, y, strokes);
       drawShape(ctx, shape as Shape);
     }
@@ -86,9 +98,11 @@ export default async function initCanvas(
       startY,
       coords.x,
       coords.y,
-      strokes,
+      shapeType === "pencil" || shapeType === "eraser" ? [...strokes] : undefined,
     );
+
     existingShapes.push(shape as Shape);
+    clearCanvas(canvas, ctx, existingShapes);
 
     socket.send(
       JSON.stringify({
@@ -119,10 +133,10 @@ function clearCanvas(
   existingShapes: Shape[],
 ) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(0, 0, 0 )";
+  ctx.fillStyle = "rgba(0, 0, 0)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  existingShapes.map((shape) => {
+  existingShapes.forEach((shape) => {
     drawShape(ctx, shape);
   });
 }

@@ -21,7 +21,6 @@ export const getShapeData = (
         y,
         thickness: 1,
       };
-      break;
     }
     case "rect": {
       return {
@@ -31,7 +30,6 @@ export const getShapeData = (
         width,
         height,
       };
-      break;
     }
     case "circle": {
       return {
@@ -42,7 +40,6 @@ export const getShapeData = (
         y,
         radius: Math.sqrt(width * width + height * height) / 2,
       };
-      break;
     }
     case "pencil": {
       return {
@@ -50,7 +47,13 @@ export const getShapeData = (
         stroke: strokes || [],
         thickness: 1,
       };
-      break;
+    }
+    case "eraser": {
+      return {
+        type: "eraser",
+        stroke: strokes || [],
+        size: 20,
+      };
     }
     default:
       throw new Error("Invalid shape type");

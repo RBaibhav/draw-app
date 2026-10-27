@@ -15,16 +15,17 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
     ws.onopen = () => {
       console.log("WebSocket connected:", ws);
       setSocket(ws);
-      ws.send(JSON.stringify({
-        type: "join_room",
-        roomId
-      }))
+      ws.send(
+        JSON.stringify({
+          type: "join_room",
+          roomId,
+        }),
+      );
     };
 
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
-
   }, [roomId]);
 
   if (!socket) {

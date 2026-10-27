@@ -9,14 +9,25 @@ declare global {
     }
   }
 }
-export function auth(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers["authorization"];
 
-  if (!token) {
-    return res.status(401).send("Authorization header missing");
+export function auth(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    res.status(401).json({ error: "Authorization header missing" });
+    return;
   }
 
-  const decoded = jwt.verify(token as string, JWT_SECRET) as jwt.JwtPayload;
-  req.userId = decoded.userId;
-  next();
+  // Support both "Bearer <token>" and raw "<token>"
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : authHeader;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
+    req.userId = decoded.userId;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid or expired token" });
+  }
 }

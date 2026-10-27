@@ -26,10 +26,14 @@ export type Shape =
       type: "pencil";
       stroke: Points[];
       thickness: number;
+    }
+  | {
+      type: "eraser";
+      stroke: Points[];
+      size: number;
     };
 
-export interface Points{
+export interface Points {
   x: number;
   y: number;
 }
-

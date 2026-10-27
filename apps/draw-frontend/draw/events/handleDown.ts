@@ -1,12 +1,11 @@
-
-
+import { MutableRefObject } from "react";
 
 export const handleDown = ({
   isMouseDown,
-e 
-}: {isMouseDown: boolean, e : PointerEvent} ) => {
-    isMouseDown.current = true;
-    startX = e.clientX;
-    startY = e.clientY;
-  };
-}
+  e,
+}: {
+  isMouseDown: MutableRefObject<boolean>;
+  e: PointerEvent;
+}) => {
+  isMouseDown.current = true;
+};
