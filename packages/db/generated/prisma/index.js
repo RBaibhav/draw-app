@@ -98,14 +98,34 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   password: 'password',
   name: 'name',
-  photo: 'photo'
+  photo: 'photo',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.RoomScalarFieldEnum = {
   id: 'id',
   slug: 'slug',
+  description: 'description',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   adminId: 'adminId'
+};
+
+exports.Prisma.RoomMemberScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.ShapeScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  type: 'type',
+  shapeData: 'shapeData',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ChatScalarFieldEnum = {
@@ -135,6 +155,8 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   Room: 'Room',
+  RoomMember: 'RoomMember',
+  Shape: 'Shape',
   Chat: 'Chat'
 };
 /**
@@ -145,10 +167,10 @@ const config = {
   "clientVersion": "7.3.0",
   "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id       String  @id @default(uuid())\n  email    String  @unique\n  password String\n  name     String\n  photo    String?\n  rooms    Room[]\n  chats    Chat[]\n}\n\nmodel Room {\n  id        Int      @id @default(autoincrement())\n  slug      String   @unique\n  createdAt DateTime @default(now())\n  adminId   String\n  admin     User     @relation(fields: [adminId], references: [id])\n  chats     Chat[]\n}\n\nmodel Chat {\n  id        Int      @id @default(autoincrement())\n  roomId    Int\n  message   String\n  userId    String\n  createdAt DateTime @default(now())\n  room      Room     @relation(fields: [roomId], references: [id])\n  user      User     @relation(fields: [userId], references: [id])\n}\n"
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id          String       @id @default(uuid())\n  email       String       @unique\n  password    String\n  name        String\n  photo       String?\n  createdAt   DateTime     @default(now())\n  rooms       Room[]       @relation(\"AdminRooms\")\n  memberships RoomMember[]\n  shapes      Shape[]\n  chats       Chat[]\n}\n\nmodel Room {\n  id          Int          @id @default(autoincrement())\n  slug        String       @unique\n  description String?\n  createdAt   DateTime     @default(now())\n  updatedAt   DateTime     @default(now()) @updatedAt\n  adminId     String\n  admin       User         @relation(\"AdminRooms\", fields: [adminId], references: [id], onDelete: Cascade)\n  members     RoomMember[]\n  shapes      Shape[]\n  chats       Chat[]\n}\n\nmodel RoomMember {\n  id       String   @id @default(uuid())\n  roomId   Int\n  userId   String\n  role     String   @default(\"member\")\n  joinedAt DateTime @default(now())\n  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)\n  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([roomId, userId])\n  @@index([roomId])\n  @@index([userId])\n}\n\nmodel Shape {\n  id        Int      @id @default(autoincrement())\n  roomId    Int\n  userId    String\n  type      String\n  shapeData String\n  createdAt DateTime @default(now())\n  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([roomId])\n}\n\nmodel Chat {\n  id        Int      @id @default(autoincrement())\n  roomId    Int\n  message   String\n  userId    String\n  createdAt DateTime @default(now())\n  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)\n  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([roomId])\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"photo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rooms\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"RoomToUser\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"Chat\",\"relationName\":\"ChatToUser\"}],\"dbName\":null},\"Room\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"adminId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"RoomToUser\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"Chat\",\"relationName\":\"ChatToRoom\"}],\"dbName\":null},\"Chat\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"roomId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"room\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"ChatToRoom\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ChatToUser\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"photo\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"rooms\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"AdminRooms\"},{\"name\":\"memberships\",\"kind\":\"object\",\"type\":\"RoomMember\",\"relationName\":\"RoomMemberToUser\"},{\"name\":\"shapes\",\"kind\":\"object\",\"type\":\"Shape\",\"relationName\":\"ShapeToUser\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"Chat\",\"relationName\":\"ChatToUser\"}],\"dbName\":null},\"Room\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"adminId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"admin\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"AdminRooms\"},{\"name\":\"members\",\"kind\":\"object\",\"type\":\"RoomMember\",\"relationName\":\"RoomToRoomMember\"},{\"name\":\"shapes\",\"kind\":\"object\",\"type\":\"Shape\",\"relationName\":\"RoomToShape\"},{\"name\":\"chats\",\"kind\":\"object\",\"type\":\"Chat\",\"relationName\":\"ChatToRoom\"}],\"dbName\":null},\"RoomMember\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"roomId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"joinedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"room\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"RoomToRoomMember\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"RoomMemberToUser\"}],\"dbName\":null},\"Shape\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"roomId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"type\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shapeData\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"room\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"RoomToShape\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ShapeToUser\"}],\"dbName\":null},\"Chat\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"roomId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"message\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"room\",\"kind\":\"object\",\"type\":\"Room\",\"relationName\":\"ChatToRoom\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ChatToUser\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_fast_bg.js'),

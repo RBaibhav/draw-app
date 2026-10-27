@@ -1,61 +1,43 @@
-import { Points } from "./shapes/Types";
+import { Points, Shape } from "./shapes/Types";
 
-export const getShapeData = (
-  shapeType: string,
+type ShapeType = Shape["type"] | "";
+
+/** Builds the shape data object from raw pointer coordinates. */
+export function getShapeData(
+  type: ShapeType,
   startX: number,
   startY: number,
   x: number,
   y: number,
   strokes?: Points[],
-) => {
-  const width = x - startX;
-  const height = y - startY;
+): Shape | null {
+  switch (type) {
+    case "rect":
+      return { type, startX, startY, width: x - startX, height: y - startY };
 
-  switch (shapeType) {
-    case "line": {
+    case "line":
+      return { type, startX, startY, x, y, thickness: 1 };
+
+    case "circle":
       return {
-        type: "line",
+        type,
         startX,
         startY,
         x,
         y,
-        thickness: 1,
+        radius:
+          Math.sqrt(
+            (x - startX) * (x - startX) + (y - startY) * (y - startY),
+          ) / 2,
       };
-    }
-    case "rect": {
-      return {
-        type: "rect",
-        startX,
-        startY,
-        width,
-        height,
-      };
-    }
-    case "circle": {
-      return {
-        type: "circle",
-        startX,
-        startY,
-        x,
-        y,
-        radius: Math.sqrt(width * width + height * height) / 2,
-      };
-    }
-    case "pencil": {
-      return {
-        type: "pencil",
-        stroke: strokes || [],
-        thickness: 1,
-      };
-    }
-    case "eraser": {
-      return {
-        type: "eraser",
-        stroke: strokes || [],
-        size: 20,
-      };
-    }
+
+    case "pencil":
+      return { type, stroke: strokes ?? [], thickness: 1 };
+
+    case "eraser":
+      return { type, stroke: strokes ?? [], size: 20 };
+
     default:
-      throw new Error("Invalid shape type");
+      return null;
   }
-};
+}

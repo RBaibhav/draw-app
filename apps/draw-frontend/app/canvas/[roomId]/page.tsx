@@ -1,4 +1,4 @@
-import RoomCanvas from "@/components/roomCanvas";
+import { RoomCanvas } from "@/components/canvas";
 
 export default async function Canvas({  params }: {
   params: { roomId: string };

@@ -1,142 +1,160 @@
-import { drawShape } from "./shapes/drawShapes";
-import { Points, Shape } from "./shapes/Types";
 import { getShapeData } from "./shapeData";
+import { drawShape } from "./shapes/drawShapes";
+import { Shape } from "./shapes/Types";
 import { getExistingShapes } from "./http";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ShapeTypeRef = { current: Shape["type"] | "" };
+type MouseRef = { current: boolean };
+
+// ─── Canvas helpers ───────────────────────────────────────────────────────────
+
+function fillCanvas(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function redrawShapes(ctx: CanvasRenderingContext2D, shapes: Shape[]) {
+  for (const shape of shapes) {
+    drawShape(ctx, shape);
+  }
+}
+
+function clearAndRedraw(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D,
+  shapes: Shape[],
+) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  fillCanvas(ctx, canvas);
+  redrawShapes(ctx, shapes);
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default async function initCanvas(
   canvas: HTMLCanvasElement,
-  isMouseDown: { current: boolean },
+  isMouseDown: MouseRef,
   roomId: string,
   socket: WebSocket,
-  shapeType: Shape["type"] | "",
-) {
+  shapeTypeRef: ShapeTypeRef,
+): Promise<(() => void) | undefined> {
   const ctx = canvas.getContext("2d");
-
-  const existingShapes: Shape[] = await getExistingShapes(roomId);
-
   if (!ctx) return;
 
-  // Set canvas size to match display size
-  const resizeCanvas = () => {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const shapes: Shape[] = await getExistingShapes(roomId);
+
+  // ── Resize handling ──────────────────────────────────────────────────────
+
+  function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    clearCanvas(canvas, ctx, existingShapes);
-  };
+    clearAndRedraw(canvas, ctx!, shapes);
+  }
+
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
+  // ── WebSocket messages ───────────────────────────────────────────────────
+
   socket.onmessage = (event) => {
-    const message = JSON.parse(event.data);
+    try {
+      const message = JSON.parse(event.data as string);
 
-    if (message.type === "chat") {
-      const parsedShape = JSON.parse(message.message);
-      const shape = parsedShape.shape as Shape;
-
-      if (shape.type === "eraser") {
-        // For eraser shapes from WS, add to existingShapes so they persist
-        existingShapes.push(shape);
-      } else {
-        existingShapes.push(shape);
+      if (message.type === "draw_shape" && message.shape) {
+        shapes.push(message.shape as Shape);
+        clearAndRedraw(canvas, ctx, shapes);
+        return;
       }
-      clearCanvas(canvas, ctx, existingShapes);
+
+      if (message.type === "clear_canvas") {
+        shapes.length = 0;
+        clearAndRedraw(canvas, ctx, shapes);
+      }
+    } catch {
+      // Ignore non-JSON handshake frames
     }
   };
 
-  clearCanvas(canvas, ctx, existingShapes);
+  clearAndRedraw(canvas, ctx, shapes);
+
+  // ── Pointer event state ──────────────────────────────────────────────────
 
   let startX = 0;
   let startY = 0;
+  const liveStrokes: { x: number; y: number }[] = [];
 
-  const strokes: Points[] = []; // for pencil and eraser tools
+  const isFreehand = () =>
+    shapeTypeRef.current === "pencil" || shapeTypeRef.current === "eraser";
 
-  const getCanvasCoordinates = (e: PointerEvent) => {
+  function getCoords(e: PointerEvent): { x: number; y: number } {
     const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
 
-  const handleDown = (e: PointerEvent) => {
+  // ── Pointer handlers ─────────────────────────────────────────────────────
+
+  function onPointerDown(e: PointerEvent) {
     isMouseDown.current = true;
-    const coords = getCanvasCoordinates(e);
-    startX = coords.x;
-    startY = coords.y;
-    strokes.length = 0; // Clear previous strokes
-    if (shapeType === "pencil" || shapeType === "eraser") {
-      strokes.push({ x: coords.x, y: coords.y });
-    }
-  };
+    const { x, y } = getCoords(e);
+    startX = x;
+    startY = y;
+    liveStrokes.length = 0;
+    if (isFreehand()) liveStrokes.push({ x, y });
+  }
 
-  const handleMove = (e: PointerEvent) => {
-    if (isMouseDown.current && shapeType) {
-      const coords = getCanvasCoordinates(e);
-      const x = coords.x;
-      const y = coords.y;
+  function onPointerMove(e: PointerEvent) {
+    if (!isMouseDown.current || !shapeTypeRef.current) return;
 
-      if (shapeType === "pencil" || shapeType === "eraser") {
-        strokes.push({ x, y });
-      }
+    const { x, y } = getCoords(e);
+    if (isFreehand()) liveStrokes.push({ x, y });
 
-      clearCanvas(canvas, ctx, existingShapes);
-      const shape = getShapeData(shapeType, startX, startY, x, y, strokes);
-      drawShape(ctx, shape as Shape);
-    }
-  };
+    clearAndRedraw(canvas, ctx, shapes);
 
-  const handleUp = (e: PointerEvent) => {
-    isMouseDown.current = false;
-
-    // Return early if no shape type is selected
-    if (!shapeType) return;
-
-    const coords = getCanvasCoordinates(e);
-    const shape = getShapeData(
-      shapeType,
+    const preview = getShapeData(
+      shapeTypeRef.current,
       startX,
       startY,
-      coords.x,
-      coords.y,
-      shapeType === "pencil" || shapeType === "eraser" ? [...strokes] : undefined,
+      x,
+      y,
+      isFreehand() ? liveStrokes : undefined,
+    );
+    if (preview) drawShape(ctx, preview);
+  }
+
+  function onPointerUp(e: PointerEvent) {
+    isMouseDown.current = false;
+    if (!shapeTypeRef.current) return;
+
+    const { x, y } = getCoords(e);
+    const shape = getShapeData(
+      shapeTypeRef.current,
+      startX,
+      startY,
+      x,
+      y,
+      isFreehand() ? [...liveStrokes] : undefined,
     );
 
-    existingShapes.push(shape as Shape);
-    clearCanvas(canvas, ctx, existingShapes);
+    if (!shape) return;
 
-    socket.send(
-      JSON.stringify({
-        type: "chat",
-        message: JSON.stringify({
-          shape,
-        }),
-        roomId,
-      }),
-    );
-  };
+    shapes.push(shape);
+    clearAndRedraw(canvas, ctx, shapes);
 
-  canvas.addEventListener("pointerdown", handleDown);
-  canvas.addEventListener("pointerup", handleUp);
-  canvas.addEventListener("pointermove", handleMove);
+    socket.send(JSON.stringify({ type: "draw_shape", roomId, shape }));
+  }
+
+  // ── Event listener registration ──────────────────────────────────────────
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", onPointerUp);
 
   return () => {
     window.removeEventListener("resize", resizeCanvas);
-    canvas.removeEventListener("pointerdown", handleDown);
-    canvas.removeEventListener("pointerup", handleUp);
-    canvas.removeEventListener("pointermove", handleMove);
+    canvas.removeEventListener("pointerdown", onPointerDown);
+    canvas.removeEventListener("pointermove", onPointerMove);
+    canvas.removeEventListener("pointerup", onPointerUp);
   };
-}
-
-function clearCanvas(
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D,
-  existingShapes: Shape[],
-) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(0, 0, 0)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  existingShapes.forEach((shape) => {
-    drawShape(ctx, shape);
-  });
 }

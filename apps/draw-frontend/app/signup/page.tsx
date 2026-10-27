@@ -1,6 +1,11 @@
-
-import AuthPage from "@/components/authpage";
+import { AuthPage } from "@/components/auth";
+import { Loader } from "@/components/ui";
+import { Suspense } from "react";
 
 export default function SignUp() {
-  return <AuthPage isSignIn={false}></AuthPage>
+  return (
+    <Suspense fallback={<Loader />}>
+      <AuthPage isSignIn={false} />
+    </Suspense>
+  );
 }

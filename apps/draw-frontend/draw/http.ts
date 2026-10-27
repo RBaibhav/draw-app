@@ -3,19 +3,26 @@ import axios from "axios";
 import { Shape } from "./shapes/Types";
 
 export async function getExistingShapes(roomId: string): Promise<Shape[]> {
-  const res = await axios.get(`${HTTP_BACKEND}/chats/${roomId}`);
+  try {
+    const res = await axios.get(`${HTTP_BACKEND}/shapes/${roomId}`);
+    const shapes = res.data?.shapes;
+    return Array.isArray(shapes) ? (shapes as Shape[]) : [];
+  } catch {
+    return [];
+  }
+}
 
-  const messages = res.data.messages;
-  const shapes = messages
-    .map((x: { message: string }) => {
-      try {
-        const messageData = JSON.parse(x.message);
-        return messageData.shape;
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean); // Remove nulls
-
-  return shapes;
+export async function clearRoomShapes(
+  roomId: string,
+  token: string,
+): Promise<boolean> {
+  try {
+    await axios.delete(`${HTTP_BACKEND}/shapes/${roomId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return true;
+  } catch (err) {
+    console.error("Failed to clear shapes:", err);
+    return false;
+  }
 }

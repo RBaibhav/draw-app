@@ -1,98 +1,46 @@
 import "dotenv/config";
-import { WebSocketServer, WebSocket } from "ws";
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "@repo/common-backend/config";
-import { prisma } from "@repo/db";
+import { WebSocketServer } from "ws";
+import { extractToken, verifyToken } from "./auth";
+import { registerUser, unregisterUser } from "./registry";
+import { dispatch } from "./handlers/dispatch";
 
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = Number(process.env.PORT) || 8080;
+const wss = new WebSocketServer({ port: PORT });
 
-interface Users {
-  ws: WebSocket;
-  userId: string;
-  rooms: string[];
-}
-
-// ugly state management
-const users: Users[] = [];
-
-function checksUsers(token: string): string | null {
-  try {
-    const decoded = jwt.verify(token as string, JWT_SECRET) as jwt.JwtPayload;
-
-    if (!decoded || !decoded.userId) {
-      return null;
-    }
-    return decoded.userId;
-  } catch (error) {
-    return null;
-  }
-}
-
-wss.on("connection", function connection(ws, request) {
+wss.on("connection", (ws, request) => {
   ws.on("error", console.error);
-  const url = request.url;
-  if (!url) {
-    return;
-  }
-  const queryParams = new URLSearchParams(url?.split("?")[1]);
-  const token = queryParams.get("token");
-  const userId = checksUsers(token as string);
+
+  // ── Authentication ──────────────────────────────────────────────────────
+
+  const token = extractToken(request.url);
+  const userId = token ? verifyToken(token) : null;
 
   if (!userId) {
     ws.close(1008, "Unauthorized");
     return;
   }
 
-  users.push({
-    ws: ws,
-    userId: userId,
-    rooms: [],
-  });
+  // ── Register connection ─────────────────────────────────────────────────
 
-  ws.on("message", async function message(data) {
-    let parsedData;
-    if (typeof data !== "string") {
-      parsedData = JSON.parse(data.toString());
-    } else {
-      parsedData = JSON.parse(data);
-    }
+  const user = { ws, userId, rooms: new Set<number>() };
+  registerUser(user);
 
-    if (parsedData.type === "join_room") {
-      const user = users.find((x) => x.ws === ws);
-      user?.rooms.push(parsedData.roomId);
-    }
-
-    if (parsedData.type === "leave_room") {
-      const user = users.find((x) => x.ws === ws);
-      if (!user) return;
-      user.rooms = user.rooms.filter((roomId) => roomId !== parsedData.roomId);
-    }
-
-    if (parsedData.type === "chat") {
-      const { roomId, message } = parsedData;
-
-      await prisma.chat.create({
-        data: {
-          userId: userId,
-          roomId: Number(roomId),
-          message: message,
-        },
-      });
-
-      users.map((user) => {
-        if (user.rooms.includes(roomId)) {
-          user.ws.send(
-            JSON.stringify({
-              type: "chat",
-              message: message,
-              roomId: Number(roomId),
-            }),
-          );
-        }
-      });
-    }
-
-  });
-
+  // Send handshake acknowledgment
   ws.send("something");
+
+  // ── Message routing ─────────────────────────────────────────────────────
+
+  ws.on("message", async (rawData) => {
+    try {
+      await dispatch(user, rawData);
+    } catch (err) {
+      console.error("WebSocket message error:", err);
+    }
+  });
+
+  // ── Cleanup on disconnect ───────────────────────────────────────────────
+
+  ws.on("close", () => unregisterUser(user));
 });
+
+console.log(`WebSocket server listening on port ${PORT}`);

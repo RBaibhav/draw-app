@@ -125,14 +125,34 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   password: 'password',
   name: 'name',
-  photo: 'photo'
+  photo: 'photo',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.RoomScalarFieldEnum = {
   id: 'id',
   slug: 'slug',
+  description: 'description',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   adminId: 'adminId'
+};
+
+exports.Prisma.RoomMemberScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.ShapeScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  type: 'type',
+  shapeData: 'shapeData',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ChatScalarFieldEnum = {
@@ -162,6 +182,8 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   Room: 'Room',
+  RoomMember: 'RoomMember',
+  Shape: 'Shape',
   Chat: 'Chat'
 };
 
