@@ -94,8 +94,8 @@ export default function CanvasComponent({
       cancelled = true;
       cleanUp?.();
     };
-  // shapeType intentionally omitted — tool changes go through shapeTypeRef, not re-init
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // shapeType intentionally omitted — tool changes go through shapeTypeRef, not re-init
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, socket]);
 
   const handleCopyLink = async () => {
@@ -186,6 +186,16 @@ export default function CanvasComponent({
 
   const displayName = roomSlug || `Room #${roomId}`;
 
+  // ── Custom cursors per tool ──────────────────────────────────────────────
+  const PENCIL_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='white' stroke='%23333' stroke-width='1.2'/%3E%3C/svg%3E") 2 22, crosshair`;
+  const ERASER_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Crect x='1' y='4' width='18' height='13' rx='2' fill='%23fff9' stroke='%23555' stroke-width='1.5'/%3E%3Cline x1='9' y1='4' x2='9' y2='17' stroke='%23aaa' stroke-width='1'/%3E%3C/svg%3E") 10 10, cell`;
+
+  const cursorStyle: React.CSSProperties["cursor"] =
+    shapeType === "pencil" ? PENCIL_CURSOR
+      : shapeType === "eraser" ? ERASER_CURSOR
+        : shapeType ? "crosshair"
+          : "default";
+
   return (
     <div className="relative h-screen w-screen flex items-center justify-center bg-black overflow-hidden select-none">
       {/* Top Navigation Bar */}
@@ -217,11 +227,10 @@ export default function CanvasComponent({
         <div className="pointer-events-auto flex items-center gap-2 bg-neutral-900/90 backdrop-blur-md border border-neutral-800 rounded-2xl px-3 py-2 shadow-xl">
           <button
             onClick={handleCopyLink}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${
-              copied
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${copied
                 ? "bg-emerald-600 text-white"
                 : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
-            }`}
+              }`}
             title="Copy shareable room link"
           >
             {copied ? (
@@ -264,8 +273,8 @@ export default function CanvasComponent({
       {/* Canvas */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full cursor-crosshair"
-        style={{ touchAction: "none" }}
+        className="w-full h-full"
+        style={{ touchAction: "none", cursor: cursorStyle }}
       />
 
       {/* Floating Center Toolbar */}
