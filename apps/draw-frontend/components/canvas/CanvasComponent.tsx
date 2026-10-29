@@ -1,5 +1,6 @@
 "use client";
 import initCanvas from "@/draw";
+import type { UndoRef } from "@/draw";
 import { clearRoomShapes, deleteRoom } from "@/draw/http";
 import { Shape } from "@/draw/shapes/Types";
 import { useEffect, useRef, useState } from "react";
@@ -10,13 +11,13 @@ import {
   ArrowLeft,
   Check,
   Circle,
-  Copy,
   Eraser,
   MoveRight,
   PencilIcon,
   RectangleHorizontal,
   Share2,
   Trash2,
+  Undo2,
 } from "lucide-react";
 
 export default function CanvasComponent({
@@ -35,6 +36,7 @@ export default function CanvasComponent({
   const isMouseDown = useRef(false);
   const [shapeType, setShapeType] = useState<Shape["type"] | "">("pencil");
   const shapeTypeRef = useRef<Shape["type"] | "">("pencil");
+  const undoRef = useRef<UndoRef["current"]>(null);
   const [copied, setCopied] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -68,17 +70,28 @@ export default function CanvasComponent({
     }
     const canvas = canvasRef.current;
     let cleanUp: (() => void) | undefined;
+    let cancelled = false;
+
     (async () => {
-      cleanUp = await initCanvas(
+      const teardown = await initCanvas(
         canvas,
         isMouseDown,
         roomId,
         socket,
         shapeTypeRef,
+        undoRef,
       );
+      // If the effect was cleaned up before initCanvas finished (React StrictMode
+      // double-invoke), immediately call teardown so stale listeners don't linger.
+      if (cancelled) {
+        teardown?.();
+        return;
+      }
+      cleanUp = teardown;
     })();
 
     return () => {
+      cancelled = true;
       cleanUp?.();
     };
   // shapeType intentionally omitted — tool changes go through shapeTypeRef, not re-init
@@ -268,12 +281,27 @@ export default function CanvasComponent({
             />
           </div>
         ))}
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-neutral-700 mx-1" />
+
+        {/* Undo button */}
+        <div title="Undo last stroke (Ctrl+Z)">
+          <IconButton
+            onClick={() => undoRef.current?.()}
+            icon={<Undo2 size={18} />}
+            activated={false}
+          />
+        </div>
       </div>
 
       {/* Hint at the bottom */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none z-10">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none z-10 flex items-center gap-3">
         <span className="text-neutral-500 text-xs bg-neutral-900/60 backdrop-blur-sm px-3 py-1 rounded-full border border-neutral-800">
           Tip: Anyone with this link can join and draw in real-time
+        </span>
+        <span className="text-neutral-500 text-xs bg-neutral-900/60 backdrop-blur-sm px-3 py-1 rounded-full border border-neutral-800">
+          <kbd className="font-mono text-neutral-400">Ctrl+Z</kbd> to undo
         </span>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { getExistingShapes } from "./http";
 
 type ShapeTypeRef = { current: Shape["type"] | "" };
 type MouseRef = { current: boolean };
+export type UndoRef = { current: (() => void) | null };
 
 // ─── Canvas helpers ───────────────────────────────────────────────────────────
 
@@ -39,11 +40,25 @@ export default async function initCanvas(
   roomId: string,
   socket: WebSocket,
   shapeTypeRef: ShapeTypeRef,
+  undoRef?: UndoRef,
 ): Promise<(() => void) | undefined> {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
   const shapes: Shape[] = await getExistingShapes(roomId);
+
+  // ── Undo ─────────────────────────────────────────────────────────────────
+  // Shapes are added to the array ONLY via the WS echo handler below.
+  // This guarantees each stroke is in the array exactly once, so one Ctrl+Z
+  // removes exactly one stroke.
+
+  function undo() {
+    if (shapes.length === 0) return;
+    shapes.pop();
+    clearAndRedraw(canvas, ctx!, shapes);
+  }
+
+  if (undoRef) undoRef.current = undo;
 
   // ── Resize handling ──────────────────────────────────────────────────────
 
@@ -56,7 +71,19 @@ export default async function initCanvas(
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
+  // ── Keyboard shortcut (Ctrl/Cmd + Z) ────────────────────────────────────
+
+  function onKeyDown(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+    }
+  }
+
+  window.addEventListener("keydown", onKeyDown);
+
   // ── WebSocket messages ───────────────────────────────────────────────────
+  // Single source of truth: shapes are only pushed here, never in onPointerUp.
 
   socket.onmessage = (event) => {
     try {
@@ -139,9 +166,8 @@ export default async function initCanvas(
 
     if (!shape) return;
 
-    shapes.push(shape);
-    clearAndRedraw(canvas, ctx!, shapes);
-
+    // Send to server — the echo back is the only place this shape gets
+    // committed to `shapes`, so undo always removes it in exactly one press.
     socket.send(JSON.stringify({ type: "draw_shape", roomId, shape }));
   }
 
@@ -153,8 +179,10 @@ export default async function initCanvas(
 
   return () => {
     window.removeEventListener("resize", resizeCanvas);
+    window.removeEventListener("keydown", onKeyDown);
     canvas.removeEventListener("pointerdown", onPointerDown);
     canvas.removeEventListener("pointermove", onPointerMove);
     canvas.removeEventListener("pointerup", onPointerUp);
+    if (undoRef) undoRef.current = null;
   };
 }
