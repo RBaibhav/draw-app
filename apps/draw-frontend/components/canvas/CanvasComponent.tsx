@@ -126,7 +126,7 @@ export default function CanvasComponent({
       );
 
       // Also call HTTP backend to ensure persistent deletion
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") ?? sessionStorage.getItem("guestToken");
       if (token) {
         await clearRoomShapes(roomId, token);
       }
@@ -148,7 +148,7 @@ export default function CanvasComponent({
 
     setIsDeleting(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token") ?? sessionStorage.getItem("guestToken");
       if (!token) return;
 
       // Broadcast delete_room to other connected clients via WebSocket
@@ -228,8 +228,8 @@ export default function CanvasComponent({
           <button
             onClick={handleCopyLink}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer ${copied
-                ? "bg-emerald-600 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
+              ? "bg-emerald-600 text-white"
+              : "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/30"
               }`}
             title="Copy shareable room link"
           >

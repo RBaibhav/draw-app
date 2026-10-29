@@ -21,13 +21,22 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
     let isMounted = true;
 
     async function initRoom() {
-      const token = localStorage.getItem("token");
+      // Prefer a real user token; fall back to a cached guest token; last
+      // resort: fetch a fresh guest token from the backend.
+      let token = localStorage.getItem("token") ?? sessionStorage.getItem("guestToken");
+
       if (!token) {
-        if (isMounted) {
-          setAuthError(true);
-          setLoading(false);
+        try {
+          const res = await axios.post(`${HTTP_BACKEND}/auth/guest`);
+          token = res.data.token as string;
+          sessionStorage.setItem("guestToken", token);
+        } catch {
+          if (isMounted) {
+            setAuthError(true);
+            setLoading(false);
+          }
+          return;
         }
-        return;
       }
 
       try {
